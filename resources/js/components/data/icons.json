@@ -1,0 +1,54 @@
+[
+  {
+    "name": "administración",
+    "value": "mdi-view-dashboard-outline"
+  },
+  {
+    "name": "reportes",
+    "value": "mdi-clipboard-outline"
+  },
+  {
+    "name": "personal",
+    "value": "mdi-shield-account"
+  },
+  {
+    "name": "cambiar-contraseña",
+    "value": "mdi-form-textbox-password"
+  },
+  {
+    "name": "cambiar-pin",
+    "value": "mdi-lastpass"
+  },
+  {
+    "name": "consulta",
+    "value": "mdi-clipboard-check-multiple-outline"
+  },
+  {
+    "name": "renap",
+    "value": "mdi-account-tie"
+  },
+  {
+    "name": "configuración",
+    "value": "mdi-file-cog"
+  },
+  {
+    "name": "gestión",
+    "value": "mdi-account-cog"
+  },
+  {
+    "name": "contador",
+    "value": "mdi-clipboard-list"
+  },
+  {
+    "name": "consultas-por-usuario",
+    "value": "mdi-clipboard-account-outline"
+  },
+  {
+    "name": "consultas-por-fecha",
+    "value": "mdi-timeline-clock-outline"
+  },
+  {
+    "name": "tokens",
+    "value": "mdi-script-text-key-outline"
+  }
+]
