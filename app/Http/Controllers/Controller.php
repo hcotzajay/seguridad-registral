@@ -73,7 +73,15 @@ class Controller extends BaseController
 
         // Búsqueda y adición del nombre
         $collection = $collection->map(function ($item) use ($nombres_usuarios, $nombrePropiedad) {
-            $item->nombre_colaborador = $nombres_usuarios[$item->$nombrePropiedad];
+//            $item->nombre_colaborador = $nombres_usuarios[$item->$nombrePropiedad];
+//            return $item;
+            if ($item->$nombrePropiedad != null) {
+                if (array_key_exists($item->$nombrePropiedad, $nombres_usuarios)) {
+                    $item->nombre_colaborador = $nombres_usuarios[$item->$nombrePropiedad];
+                } else {
+                    $item->nombre_colaborador = 'Problemas con este id';
+                }
+            }
             return $item;
         });
 
