@@ -227,7 +227,6 @@ export default {
       } else {
         this.$iziToast.warning('Alerta', 'Debe completar algún campo para poder generar el reporte.')
         return false
-
       }
     },
   },

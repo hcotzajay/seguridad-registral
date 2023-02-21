@@ -35,16 +35,8 @@ class consultaController extends generarTokenController
                 $token = $obtenerNuevoToken->data->token;
                 $fechaExpiracion = $obtenerNuevoToken->data->expiracion;
                 $fechaToken = $obtenerNuevoToken->fecha;
-
                 $tokenAnterior = token::latest('id_token')->first();// Obtengo el ultimo registro que se haya ingresado para cambiar el estado del anterior
-                $idToken = $tokenAnterior->id_token;
-                $cambiarEstadoTokenAnterior = token::find($idToken);
-                $cambiarEstadoTokenAnterior->estado = 0;
-                if ($cambiarEstadoTokenAnterior->save()) {
-                    $cambioEstadoToken = true;
-                }
-
-                if ($cambiarEstadoTokenAnterior == true) {
+                if ($tokenAnterior == null) {
                     $guardarToken = new token();
                     $guardarToken->token = $token;
                     $guardarToken->estado = 1;
@@ -52,6 +44,24 @@ class consultaController extends generarTokenController
                         $situacionToken = true;
                     } else {
                         $situacionToken = false;
+                    }
+                } else {
+                    $idToken = $tokenAnterior->id_token;
+                    $cambiarEstadoTokenAnterior = token::find($idToken);
+                    $cambiarEstadoTokenAnterior->estado = 0;
+                    if ($cambiarEstadoTokenAnterior->save()) {
+                        $cambioEstadoToken = true;
+                    }
+
+                    if ($cambiarEstadoTokenAnterior == true) {
+                        $guardarToken = new token();
+                        $guardarToken->token = $token;
+                        $guardarToken->estado = 1;
+                        if ($guardarToken->save()) {
+                            $situacionToken = true;
+                        } else {
+                            $situacionToken = false;
+                        }
                     }
                 }
             }
@@ -76,16 +86,37 @@ class consultaController extends generarTokenController
             $consultaCui = $this->realizarConsulta($cui, $tokenActivo);
 //        Guardar en las distintas tablas previo a realizar la consulta
 //        Tabla contador
+
+//            $consultaCui = '{"result":true,"fecha":"08\/02\/2023","responseCode":200,"hora":"08:46:46","mensaje":"Se muestran los resultados encontrados.","data":[{"CUI":"1969891081506","PRIMER_NOMBRE":"Valeria","SEGUNDO_NOMBRE":null,"TERCER_NOMBRE":null,"PRIMER_APELLIDO":"Morales","SEGUNDO_APELLIDO":null,"FECHA_NACIMIENTO":"15\/12\/1922","GENERO":"F","ESTADO_CIVIL":"S","NACIONALIDAD":"GUATEMALA","FECHA_DEFUNCION":null,"OCUPACION":"OFICIOS DOMESTICOS","VECINDAD":"BAJA VERAPAZ, EL CHOL"}]}';
+//            $consultaCui = json_decode($consultaCui);
             $contadorAnterior = contador::latest('id_contador')->first();// Obtengo el ultimo registro que se haya ingresado para cambiar el estado del anterior
             $idContador = $contadorAnterior->id_contador;
+            $fechaUltimoContador = $contadorAnterior->fecha_contador;
 
-            //Cambio de estado del contador Anterior
-            $estodoContadorAnterior = $this->cambiarEstadoContador($idContador);
 
-            //Almacenar nuevo contador para el registro
-            $contadorActual = $contadorAnterior->contador;
-            $nuevoContador = $this->nuevoContador($contadorActual);
+            $fechaActual = date('d-m-Y');
+            $fechaEntero = strtotime($fechaActual);
+            $mesActual = date("m", $fechaEntero);
 
+            $fechaEnteroUltimoContador = strtotime($fechaUltimoContador);
+            $mesUltimoContador = date("m", $fechaEnteroUltimoContador);
+            if ($mesUltimoContador != $mesActual) {
+                $estodoContadorAnterior = $this->cambiarEstadoContador($idContador);
+                $contadorInicialMes = new contador();
+                $contadorInicialMes->contador = 1;
+                $contadorInicialMes->estado = 1;
+                if ($contadorInicialMes->save()) {
+                    $nuevoContador = true;
+                } else {
+                    $nuevoContador = false;
+                }
+            } else {
+                //Cambio de estado del contador Anterior
+                $estodoContadorAnterior = $this->cambiarEstadoContador($idContador);
+                //Almacenar nuevo contador para el registro
+                $contadorActual = $contadorAnterior->contador;
+                $nuevoContador = $this->nuevoContador($contadorActual);
+            }
             $consultaCuiAlmacenar = json_encode($consultaCui);
 
             //Almacenar en la tabla Datos
@@ -128,13 +159,12 @@ class consultaController extends generarTokenController
                 $obtenerUltimoRegistroContador = contador::latest('id_contador')->first();// Obtengo el ultimo registro que se haya ingresado
                 $idContador = $obtenerUltimoRegistroContador->id_contador;
 
-                $obtenerUltimoRegistroResultado = contador::latest('id_contador')->first();// Obtengo el ultimo registro que se haya ingresado
+                $obtenerUltimoRegistroResultado = resultado::latest('id_resultado')->first();// Obtengo el ultimo registro que se haya ingresado
                 $idResultado = $obtenerUltimoRegistroResultado->id_resultado;
 
                 $almacenarConsulta = $this->almacenarConsulta($idSS, $idCui, $idNombres, $idTipo, $idContador, $idResultado, $idTokenActivo);
                 if ($almacenarConsulta == true) {
                     DB::connection('mysql')->commit();
-
                     $consultaCuiBitacora = json_encode($consultaCui);
                     if ($consultaCui !== 'Ha ocurrido un error en la comunicación con el WS') {
                         $obtenerUltimoRegistro = log_bitacora_busquedas::latest('id_log_busqueda')->first();// Obtengo el ultimo registro que se haya ingresado
@@ -145,7 +175,6 @@ class consultaController extends generarTokenController
                         } else {
                             $numeroConsulta = 1;
                         }
-
                         $idUSS = $_SESSION['id_usuario'];
                         $ingresarBitacora = $this->ingresarBitacora($consultaCuiBitacora, $numeroConsulta, $idUSS);
                     }
@@ -157,7 +186,6 @@ class consultaController extends generarTokenController
                     ], 200);
                 } else {
                     DB::connection('mysql')->rollBack();
-
                     $consultaCuiBitacora = json_encode($consultaCui);
                     if ($consultaCui !== 'Ha ocurrido un error en la comunicación con el WS') {
                         $obtenerUltimoRegistro = log_bitacora_busquedas::latest('id_log_busqueda')->first();// Obtengo el ultimo registro que se haya ingresado
@@ -166,7 +194,6 @@ class consultaController extends generarTokenController
                             $numeroConsulta = $obtenerUltimoRegistro->numero_consulta;
                             $numeroConsulta = $numeroConsulta + 1;
                         } else {
-
                             $numeroConsulta = 1;
                         }
 
