@@ -123,6 +123,13 @@ class reportesBusquedasController extends Controller
             ->get();
 
         $obtenerInfoConsulta->toArray();
+        if ($obtenerInfoConsulta->isEmpty()) {
+            return response()->json([
+                'title'   => 'Atención!',
+                'message' => 'No se encontraron resultados con los parámetros ingresados..'
+            ], 500);
+        }
+        
         $nombreColaborador = $this->agregarNombreDelColaborador($obtenerInfoConsulta, 'id_ss');
         if (!is_a($nombreColaborador, 'Illuminate\Database\Eloquent\Collection')) {
             return $nombreColaborador;
